@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TTU Attendance">
+    <title>Mark Attendance - TTU Smart Attendance System</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">T</div>
+                    <span>TTU</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item" data-page="dashboard">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="students.html" class="nav-item" data-page="students">
+                    <span class="icon">👥</span>
+                    <span>Students</span>
+                </a>
+                <a href="sessions.html" class="nav-item" data-page="sessions">
+                    <span class="icon">📅</span>
+                    <span>Sessions</span>
+                </a>
+                <a href="attendance.html" class="nav-item active" data-page="attendance">
+                    <span class="icon">✓</span>
+                    <span>Mark Attendance</span>
+                </a>
+                <a href="reports.html" class="nav-item" data-page="reports">
+                    <span class="icon">📈</span>
+                    <span>Reports</span>
+                </a>
+                <a href="admins.html" class="nav-item" data-page="admins">
+                    <span class="icon">🔑</span>
+                    <span>Admins</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-secondary btn-full">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1>Mark Attendance</h1>
+                </div>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <span id="userName">Admin</span>
+                        <div class="user-avatar">A</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="attendance-selector">
+                            <div class="form-group">
+                                <label for="sessionSelect">Select Session</label>
+                                <select id="sessionSelect">
+                                    <option value="">Choose a session...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" id="attendanceBody" style="display: none;">
+                        <div class="attendance-controls">
+                            <div class="search-box">
+                                <input type="text" id="searchInput" placeholder="Search by index number or name...">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                            <div class="attendance-actions">
+                                <button id="markAllBtn" class="btn btn-secondary">✓ Mark All Present</button>
+                                <button id="clearAllBtn" class="btn btn-secondary">✕ Clear All</button>
+                                <button id="saveBtn" class="btn btn-primary">💾 Save Attendance</button>
+                            </div>
+                        </div>
+
+                        <div class="attendance-stats">
+                            <div class="stat">
+                                <span class="stat-label">Present</span>
+                                <span class="stat-value" id="presentCount">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Absent</span>
+                                <span class="stat-value" id="absentCount">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Total</span>
+                                <span class="stat-value" id="totalCount">0</span>
+                            </div>
+                        </div>
+
+                        <div class="attendance-table-container">
+                            <table class="table attendance-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">
+                                            <input type="checkbox" id="selectAll">
+                                        </th>
+                                        <th>Index Number</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTableBody">
+                                    <tr>
+                                        <td colspan="5" class="empty-state">Select a session first</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/attendance.js"></script>
+    <script>
+        let currentSession = null;
+        let allStudents = [];
+        let attendanceData = {};
+
+        window.addEventListener('load', () => {
+            checkAuth();
+            loadSessions();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('sessionSelect').addEventListener('change', handleSessionChange);
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('markAllBtn').addEventListener('click', markAllPresent);
+            document.getElementById('clearAllBtn').addEventListener('click', clearAll);
+            document.getElementById('saveBtn').addEventListener('click', saveAttendance);
+            document.getElementById('selectAll').addEventListener('change', toggleSelectAll);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+        }
+
+        async function loadSessions() {
+            try {
+                const db = getFirestore();
+                const snap = await getDocs(query(
+                    collection(db, 'sessions'),
+                    orderBy('createdAt', 'desc')
+                ));
+                
+                const select = document.getElementById('sessionSelect');
+                select.innerHTML = '<option value="">Choose a session...</option>';
+                snap.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = `${doc.data().courseName} - Week ${doc.data().week}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+            }
+        }
+
+        async function handleSessionChange(e) {
+            currentSession = e.target.value;
+            if (currentSession) {
+                await loadStudentsForSession();
+                document.getElementById('attendanceBody').style.display = 'block';
+            } else {
+                document.getElementById('attendanceBody').style.display = 'none';
+            }
+        }
+
+        async function loadStudentsForSession() {
+            try {
+                const db = getFirestore();
+                
+                // Load all students
+                const studentsSnap = await getDocs(collection(db, 'students'));
+                allStudents = studentsSnap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Load existing attendance
+                const attendanceSnap = await getDocs(query(
+                    collection(db, 'attendance'),
+                    where('sessionId', '==', currentSession)
+                ));
+
+                attendanceData = {};
+                attendanceSnap.forEach(doc => {
+                    attendanceData[doc.data().studentId] = doc.data().status;
+                });
+
+                renderAttendanceTable();
+            } catch (error) {
+                console.error('Error loading students:', error);
+                showToast('Error loading students', 'error');
+            }
+        }
+
+        function renderAttendanceTable() {
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = allStudents.map((student, index) => {
+                const isPresent = attendanceData[student.id] === 'present';
+                return `
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="student-checkbox" data-student-id="${student.id}" ${isPresent ? 'checked' : ''}>
+                        </td>
+                        <td>${student.indexNumber}</td>
+                        <td>${student.name}</td>
+                        <td>${student.department}</td>
+                        <td>
+                            <span class="badge ${isPresent ? 'badge-success' : 'badge-danger'}">
+                                ${isPresent ? 'Present' : 'Absent'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Add event listeners to checkboxes
+            document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateStats);
+            });
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            const present = Array.from(checkboxes).filter(c => c.checked).length;
+            const total = checkboxes.length;
+            const absent = total - present;
+
+            document.getElementById('presentCount').textContent = present;
+            document.getElementById('absentCount').textContent = absent;
+            document.getElementById('totalCount').textContent = total;
+        }
+
+        function markAllPresent() {
+            document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateStats();
+        }
+
+        function clearAll() {
+            document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateStats();
+        }
+
+        function toggleSelectAll(e) {
+            document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+            });
+            updateStats();
+        }
+
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#attendanceTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        async function saveAttendance() {
+            if (!currentSession) {
+                showToast('Please select a session', 'error');
+                return;
+            }
+
+            try {
+                const db = getFirestore();
+                const checkboxes = document.querySelectorAll('.student-checkbox');
+                
+                for (const checkbox of checkboxes) {
+                    const studentId = checkbox.dataset.studentId;
+                    const student = allStudents.find(s => s.id === studentId);
+                    const status = checkbox.checked ? 'present' : 'absent';
+                    
+                    const attendanceRef = query(
+                        collection(db, 'attendance'),
+                        where('studentId', '==', studentId),
+                        where('sessionId', '==', currentSession)
+                    );
+                    
+                    const snap = await getDocs(attendanceRef);
+                    if (snap.empty) {
+                        await addDoc(collection(db, 'attendance'), {
+                            studentId,
+                            name: student.name,
+                            indexNumber: student.indexNumber,
+                            sessionId: currentSession,
+                            status,
+                            timestamp: new Date().getTime()
+                        });
+                    } else {
+                        await updateDoc(snap.docs[0].ref, { status });
+                    }
+                }
+
+                showToast('Attendance saved successfully!', 'success');
+            } catch (error) {
+                console.error('Error saving attendance:', error);
+                showToast('Error saving attendance: ' + error.message, 'error');
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await logoutUser();
+                window.location.href = 'login.html';
+            } catch (error) {
+                showToast('Logout failed: ' + error.message, 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service worker registered.'))
+                .catch(err => console.log('Service worker registration failed:', err));
+        }
+
+        window.addEventListener('beforeinstallprompt', event => {
+            event.preventDefault();
+            window.deferredInstallPrompt = event;
+        });
+    </script>
+</body>
+</html>

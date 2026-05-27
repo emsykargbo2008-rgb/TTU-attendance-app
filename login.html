@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TTU Attendance">
+    <title>Login - TTU Smart Attendance System</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="logo-icon">T</div>
+                <h1>TTU Attendance</h1>
+                <p>Admin Login</p>
+            </div>
+
+            <form id="loginForm" class="form">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="admin@ttu.edu.gh" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+            </form>
+
+            <div class="login-error" id="errorMessage" style="display: none;"></div>
+
+            <div class="login-footer">
+                <p>Demo Account:</p>
+                <p><strong>Email:</strong> admin@ttu.edu.gh</p>
+                <p><strong>Password:</strong> Admin@123</p>
+            </div>
+
+            <div class="login-links">
+                <a href="index.html">Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="loader" id="loader" style="display: none;"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const loader = document.getElementById('loader');
+
+            errorDiv.style.display = 'none';
+            loader.style.display = 'flex';
+
+            try {
+                const result = await loginUser(email, password);
+                if (result.success) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    errorDiv.textContent = result.error || 'Login failed. Please try again.';
+                    errorDiv.style.display = 'block';
+                    loader.style.display = 'none';
+                }
+            } catch (error) {
+                errorDiv.textContent = error.message || 'An error occurred. Please try again.';
+                errorDiv.style.display = 'block';
+                loader.style.display = 'none';
+            }
+        });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service worker registered.'))
+                .catch(err => console.log('Service worker registration failed:', err));
+        }
+
+        window.addEventListener('beforeinstallprompt', event => {
+            event.preventDefault();
+            window.deferredInstallPrompt = event;
+        });
+    </script>
+</body>
+</html>

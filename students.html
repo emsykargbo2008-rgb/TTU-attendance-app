@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TTU Attendance">
+    <title>Students - TTU Smart Attendance System</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">T</div>
+                    <span>TTU</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item" data-page="dashboard">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="students.html" class="nav-item active" data-page="students">
+                    <span class="icon">👥</span>
+                    <span>Students</span>
+                </a>
+                <a href="sessions.html" class="nav-item" data-page="sessions">
+                    <span class="icon">📅</span>
+                    <span>Sessions</span>
+                </a>
+                <a href="attendance.html" class="nav-item" data-page="attendance">
+                    <span class="icon">✓</span>
+                    <span>Mark Attendance</span>
+                </a>
+                <a href="reports.html" class="nav-item" data-page="reports">
+                    <span class="icon">📈</span>
+                    <span>Reports</span>
+                </a>
+                <a href="admins.html" class="nav-item" data-page="admins">
+                    <span class="icon">🔑</span>
+                    <span>Admins</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-secondary btn-full">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1>Student Management</h1>
+                </div>
+                <div class="topbar-right">
+                    <button id="addStudentBtn" class="btn btn-primary">➕ Add Student</button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search by name or index number...">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div class="filter-box">
+                            <select id="filterDept">
+                                <option value="">All Departments</option>
+                                <option value="Software Engineering">Software Engineering</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                <option value="Electrical Engineering">Electrical Engineering</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Index Number</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Level</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsTableBody">
+                                    <tr>
+                                        <td colspan="5" class="empty-state">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Student Modal -->
+    <div id="studentModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Student</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="studentForm" class="form">
+                <div class="form-group">
+                    <label for="studentName">Full Name</label>
+                    <input type="text" id="studentName" required>
+                </div>
+                <div class="form-group">
+                    <label for="studentIndex">Index Number</label>
+                    <input type="text" id="studentIndex" required>
+                </div>
+                <div class="form-group">
+                    <label for="studentDept">Department</label>
+                    <select id="studentDept" required>
+                        <option value="">Select Department</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Civil Engineering">Civil Engineering</option>
+                        <option value="Electrical Engineering">Electrical Engineering</option>
+                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="studentLevel">Level</label>
+                    <select id="studentLevel" required>
+                        <option value="">Select Level</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="300">300</option>
+                        <option value="400">400</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/students.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            checkAuth();
+            loadStudents();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('addStudentBtn').addEventListener('click', openAddModal);
+            document.getElementById('studentForm').addEventListener('submit', handleSaveStudent);
+            document.querySelector('.close-btn').addEventListener('click', closeModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('filterDept').addEventListener('change', handleFilter);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Add Student';
+            document.getElementById('studentForm').reset();
+            document.getElementById('studentForm').dataset.studentId = '';
+            document.getElementById('studentModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('studentModal').style.display = 'none';
+        }
+
+        async function handleSaveStudent(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('studentForm').dataset.studentId;
+            const data = {
+                name: document.getElementById('studentName').value,
+                indexNumber: document.getElementById('studentIndex').value,
+                department: document.getElementById('studentDept').value,
+                level: document.getElementById('studentLevel').value
+            };
+
+            try {
+                await saveStudent(studentId || null, data);
+                showToast(studentId ? 'Student updated successfully' : 'Student added successfully', 'success');
+                closeModal();
+                loadStudents();
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#studentsTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        function handleFilter(e) {
+            const dept = e.target.value;
+            const rows = document.querySelectorAll('#studentsTableBody tr');
+            rows.forEach(row => {
+                if (!dept) {
+                    row.style.display = '';
+                } else {
+                    const rowDept = row.cells[2]?.textContent || '';
+                    row.style.display = rowDept === dept ? '' : 'none';
+                }
+            });
+        }
+
+        async function handleLogout() {
+            try {
+                await logoutUser();
+                window.location.href = 'login.html';
+            } catch (error) {
+                showToast('Logout failed: ' + error.message, 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service worker registered.'))
+                .catch(err => console.log('Service worker registration failed:', err));
+        }
+
+        window.addEventListener('beforeinstallprompt', event => {
+            event.preventDefault();
+            window.deferredInstallPrompt = event;
+        });
+    </script>
+</body>
+</html>

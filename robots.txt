@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# After you publish the site, replace the placeholder below with your actual hosted domain.
+# Sitemap: https://your-domain.com/sitemap.xml

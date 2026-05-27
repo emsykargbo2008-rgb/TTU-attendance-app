@@ -1,0 +1,83 @@
+{
+  "name": "TTU Smart Attendance System",
+  "short_name": "TTU Attendance",
+  "description": "Modern university attendance management system for Takoradi Technical University",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "categories": ["productivity", "education"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect width='540' height='720' fill='%231e40af'/><text x='270' y='360' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>T</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><rect width='1280' height='720' fill='%231e40af'/><text x='640' y='360' font-size='150' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>T</text></svg>",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%231e40af' rx='45'/><text x='96' y='96' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>T</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%231e40af' rx='120'/><text x='256' y='256' font-size='280' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>T</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View dashboard and statistics",
+      "url": "/dashboard.html",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%231e40af'/><text x='48' y='48' font-size='50' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>D</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Mark Attendance",
+      "short_name": "Attendance",
+      "description": "Mark student attendance",
+      "url": "/attendance.html",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%231e40af'/><text x='48' y='48' font-size='60' fill='white' text-anchor='middle' dominant-baseline='middle'>✓</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "short_name": "Reports",
+      "description": "View attendance reports",
+      "url": "/reports.html",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%231e40af'/><text x='48' y='48' font-size='50' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>R</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
+}

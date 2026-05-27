@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="description" content="TTU Attendance makes student attendance management easy for Takoradi Technical University. Install on mobile or use it directly in your browser.">
+    <meta name="keywords" content="TTU Attendance, Takoradi Technical University attendance, attendance app, student attendance, PWA attendance">
+    <meta property="og:title" content="TTU Attendance | Smart Attendance System">
+    <meta property="og:description" content="TTU Attendance makes student attendance management easy for Takoradi Technical University. Install on mobile or use it directly in your browser.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ttu-attendance.example.com/">
+    <meta property="og:image" content="https://ttu-attendance.example.com/assets/icons/icon-512.png">
+    <title>TTU Attendance | Smart Attendance System</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TTU Attendance">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container-landing">
+        <!-- Navigation -->
+        <nav class="nav-landing">
+            <div class="nav-content">
+                <div class="logo">
+                    <div class="logo-icon">T</div>
+                    <span>TTU Attendance</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="login.html" class="btn btn-primary">Login</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>TTU Smart Attendance System</h1>
+                <p>Modern, efficient, and reliable attendance management for Takoradi Technical University</p>
+                <a href="login.html" class="btn btn-primary btn-lg">Get Started</a>
+                <button id="installButton" class="btn btn-secondary btn-lg" style="display:none; margin-left: 1rem;">Install App</button>
+            </div>
+            <div class="hero-graphic">
+                <div class="graphic-box">
+                    <svg viewBox="0 0 200 200" class="hero-icon">
+                        <rect width="200" height="200" fill="#dbeafe"/>
+                        <circle cx="100" cy="60" r="20" fill="#1e40af"/>
+                        <rect x="70" y="90" width="60" height="80" fill="none" stroke="#1e40af" stroke-width="3"/>
+                        <rect x="75" y="95" width="10" height="10" fill="#1e40af"/>
+                        <rect x="90" y="95" width="10" height="10" fill="#1e40af"/>
+                        <rect x="105" y="95" width="10" height="10" fill="#1e40af"/>
+                        <rect x="120" y="95" width="10" height="10" fill="#1e40af"/>
+                        <rect x="75" y="115" width="10" height="10" fill="#1e40af"/>
+                        <rect x="90" y="115" width="10" height="10" fill="#1e40af"/>
+                        <rect x="105" y="115" width="10" height="10" fill="#1e40af"/>
+                        <rect x="120" y="115" width="10" height="10" fill="#1e40af"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <h2>Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Mobile Friendly</h3>
+                    <p>Works perfectly on phones, tablets, and desktops</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Real-time Reports</h3>
+                    <p>Get instant attendance statistics and analytics</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Secure</h3>
+                    <p>Firebase authentication and encrypted data storage</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Fast</h3>
+                    <p>Designed to handle 300+ students efficiently</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📥</div>
+                    <h3>Install as App</h3>
+                    <p>Progressive Web App - install on home screen</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Cloud Synced</h3>
+                    <p>All data synced with Firebase in real-time</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about" id="about">
+            <h2>About This System</h2>
+            <div class="about-content">
+                <p>The TTU Smart Attendance System is a modern solution designed for Software Engineering Level 100 at Takoradi Technical University. Built with cutting-edge web technology, it provides administrators with an efficient way to manage attendance records for large student groups.</p>
+                <div class="about-features">
+                    <div class="about-item">
+                        <strong>300+ Students</strong>
+                        <span>Handle large class sizes efficiently</span>
+                    </div>
+                    <div class="about-item">
+                        <strong>Real-time Sync</strong>
+                        <span>Firebase keeps data updated instantly</span>
+                    </div>
+                    <div class="about-item">
+                        <strong>Role-based Access</strong>
+                        <span>Admin and assistant admin roles</span>
+                    </div>
+                    <div class="about-item">
+                        <strong>Offline Ready</strong>
+                        <span>Works offline, syncs when online</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2026 TTU Smart Attendance System. All rights reserved.</p>
+                <p>Takoradi Technical University - Software Engineering Department</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service worker registered.'))
+                .catch(err => console.log('Service worker registration failed:', err));
+        }
+
+        let deferredInstallPrompt;
+        const installButton = document.getElementById('installButton');
+
+        window.addEventListener('beforeinstallprompt', event => {
+            event.preventDefault();
+            deferredInstallPrompt = event;
+            if (installButton) {
+                installButton.style.display = 'inline-flex';
+            }
+        });
+
+        if (installButton) {
+            installButton.addEventListener('click', async () => {
+                if (!deferredInstallPrompt) return;
+                deferredInstallPrompt.prompt();
+                const choiceResult = await deferredInstallPrompt.userChoice;
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('TTU Attendance install accepted');
+                } else {
+                    console.log('TTU Attendance install dismissed');
+                }
+                deferredInstallPrompt = null;
+                installButton.style.display = 'none';
+            });
+        }
+
+        window.addEventListener('load', () => {
+            const user = localStorage.getItem('user');
+            if (user) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>

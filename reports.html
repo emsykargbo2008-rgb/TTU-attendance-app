@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TTU Attendance">
+    <title>Reports - TTU Smart Attendance System</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">T</div>
+                    <span>TTU</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item" data-page="dashboard">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="students.html" class="nav-item" data-page="students">
+                    <span class="icon">👥</span>
+                    <span>Students</span>
+                </a>
+                <a href="sessions.html" class="nav-item" data-page="sessions">
+                    <span class="icon">📅</span>
+                    <span>Sessions</span>
+                </a>
+                <a href="attendance.html" class="nav-item" data-page="attendance">
+                    <span class="icon">✓</span>
+                    <span>Mark Attendance</span>
+                </a>
+                <a href="reports.html" class="nav-item active" data-page="reports">
+                    <span class="icon">📈</span>
+                    <span>Reports</span>
+                </a>
+                <a href="admins.html" class="nav-item" data-page="admins">
+                    <span class="icon">🔑</span>
+                    <span>Admins</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-secondary btn-full">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1>Attendance Reports</h1>
+                </div>
+                <div class="topbar-right">
+                    <button id="exportBtn" class="btn btn-primary">📥 Export Report</button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Filters -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Report Filters</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="filter-grid">
+                            <div class="form-group">
+                                <label for="filterSession">Session</label>
+                                <select id="filterSession">
+                                    <option value="">All Sessions</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="filterCourse">Course</label>
+                                <select id="filterCourse">
+                                    <option value="">All Courses</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="filterDept">Department</label>
+                                <select id="filterDept">
+                                    <option value="">All Departments</option>
+                                    <option value="Software Engineering">Software Engineering</option>
+                                    <option value="Civil Engineering">Civil Engineering</option>
+                                    <option value="Electrical Engineering">Electrical Engineering</option>
+                                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button id="applyFiltersBtn" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Apply Filters</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">✓</div>
+                        <div class="stat-content">
+                            <h3>Total Sessions</h3>
+                            <p class="stat-number" id="totalSessions">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <h3>Students Tracked</h3>
+                            <p class="stat-number" id="totalStudents">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <h3>Avg Attendance</h3>
+                            <p class="stat-number" id="avgAttendance">0%</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-content">
+                            <h3>Most Absent</h3>
+                            <p class="stat-number" id="mostAbsent">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Report Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Student Attendance Details</h2>
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search student...">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Index Number</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Sessions Attended</th>
+                                        <th>Total Sessions</th>
+                                        <th>Attendance %</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportsTableBody">
+                                    <tr>
+                                        <td colspan="7" class="empty-state">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Most Absent Students -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Students with Low Attendance</h2>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Index Number</th>
+                                    <th>Name</th>
+                                    <th>Absences</th>
+                                    <th>Attendance %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="absentTableBody">
+                                <tr>
+                                    <td colspan="4" class="empty-state">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/reports.js"></script>
+    <script>
+        let allData = {
+            students: [],
+            sessions: [],
+            attendance: []
+        };
+
+        window.addEventListener('load', () => {
+            checkAuth();
+            loadReportData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('applyFiltersBtn').addEventListener('click', generateReport);
+            document.getElementById('exportBtn').addEventListener('click', exportReport);
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+        }
+
+        async function loadReportData() {
+            try {
+                const db = getFirestore();
+
+                // Load sessions
+                const sessionsSnap = await getDocs(collection(db, 'sessions'));
+                allData.sessions = sessionsSnap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Load students
+                const studentsSnap = await getDocs(collection(db, 'students'));
+                allData.students = studentsSnap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Load attendance
+                const attendanceSnap = await getDocs(collection(db, 'attendance'));
+                allData.attendance = attendanceSnap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Populate filters
+                const sessionSelect = document.getElementById('filterSession');
+                sessionSelect.innerHTML = '<option value="">All Sessions</option>';
+                allData.sessions.forEach(session => {
+                    const option = document.createElement('option');
+                    option.value = session.id;
+                    option.textContent = `${session.courseName} - Week ${session.week}`;
+                    sessionSelect.appendChild(option);
+                });
+
+                const courseSelect = document.getElementById('filterCourse');
+                const courses = [...new Set(allData.sessions.map(s => s.courseName))];
+                courseSelect.innerHTML = '<option value="">All Courses</option>';
+                courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    courseSelect.appendChild(option);
+                });
+
+                generateReport();
+            } catch (error) {
+                console.error('Error loading report data:', error);
+                showToast('Error loading report data', 'error');
+            }
+        }
+
+        function generateReport() {
+            const sessionFilter = document.getElementById('filterSession').value;
+            const courseFilter = document.getElementById('filterCourse').value;
+            const deptFilter = document.getElementById('filterDept').value;
+
+            let filteredSessions = allData.sessions;
+            if (sessionFilter) filteredSessions = filteredSessions.filter(s => s.id === sessionFilter);
+            if (courseFilter) filteredSessions = filteredSessions.filter(s => s.courseName === courseFilter);
+
+            const sessionIds = filteredSessions.map(s => s.id);
+            let filteredAttendance = allData.attendance.filter(a => sessionIds.includes(a.sessionId));
+            let filteredStudents = allData.students;
+            if (deptFilter) filteredStudents = filteredStudents.filter(s => s.department === deptFilter);
+
+            // Calculate statistics
+            const studentStats = {};
+            filteredStudents.forEach(student => {
+                const attended = filteredAttendance.filter(a => a.studentId === student.id && a.status === 'present').length;
+                const total = Math.max(filteredAttendance.filter(a => a.studentId === student.id).length, sessionIds.length);
+                const percentage = total > 0 ? Math.round((attended / total) * 100) : 0;
+
+                studentStats[student.id] = {
+                    student,
+                    attended,
+                    total,
+                    percentage,
+                    absences: total - attended
+                };
+            });
+
+            // Update summary
+            document.getElementById('totalSessions').textContent = filteredSessions.length;
+            document.getElementById('totalStudents').textContent = filteredStudents.length;
+
+            const avgAttendance = Object.values(studentStats).length > 0 
+                ? Math.round(Object.values(studentStats).reduce((sum, s) => sum + s.percentage, 0) / Object.values(studentStats).length)
+                : 0;
+            document.getElementById('avgAttendance').textContent = avgAttendance + '%';
+
+            const mostAbsent = Object.values(studentStats).length > 0
+                ? Math.max(...Object.values(studentStats).map(s => s.absences))
+                : 0;
+            document.getElementById('mostAbsent').textContent = mostAbsent;
+
+            // Render table
+            const tbody = document.getElementById('reportsTableBody');
+            tbody.innerHTML = Object.values(studentStats).map(stat => {
+                const status = stat.percentage >= 75 ? 'Good' : stat.percentage >= 50 ? 'Fair' : 'Poor';
+                const statusClass = stat.percentage >= 75 ? 'badge-success' : stat.percentage >= 50 ? 'badge-warning' : 'badge-danger';
+                return `
+                    <tr>
+                        <td>${stat.student.indexNumber}</td>
+                        <td>${stat.student.name}</td>
+                        <td>${stat.student.department}</td>
+                        <td>${stat.attended}</td>
+                        <td>${stat.total}</td>
+                        <td><strong>${stat.percentage}%</strong></td>
+                        <td><span class="badge ${statusClass}">${status}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Render most absent
+            const absentsorted = Object.values(studentStats)
+                .sort((a, b) => b.absences - a.absences)
+                .slice(0, 10);
+
+            const absentTbody = document.getElementById('absentTableBody');
+            absentTbody.innerHTML = absentsorted.map(stat => `
+                <tr>
+                    <td>${stat.student.indexNumber}</td>
+                    <td>${stat.student.name}</td>
+                    <td>${stat.absences}</td>
+                    <td>${stat.percentage}%</td>
+                </tr>
+            `).join('');
+        }
+
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#reportsTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        function exportReport() {
+            const table = document.getElementById('reportsTableBody');
+            let csv = 'Index Number,Name,Department,Sessions Attended,Total Sessions,Attendance %,Status\n';
+            
+            table.querySelectorAll('tr').forEach(row => {
+                const cells = Array.from(row.cells).map(cell => `"${cell.textContent}"`).join(',');
+                csv += cells + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attendance-report-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            showToast('Report exported successfully!', 'success');
+        }
+
+        async function handleLogout() {
+            try {
+                await logoutUser();
+                window.location.href = 'login.html';
+            } catch (error) {
+                showToast('Logout failed: ' + error.message, 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service worker registered.'))
+                .catch(err => console.log('Service worker registration failed:', err));
+        }
+
+        window.addEventListener('beforeinstallprompt', event => {
+            event.preventDefault();
+            window.deferredInstallPrompt = event;
+        });
+    </script>
+</body>
+</html>

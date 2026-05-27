@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TTU Attendance">
+    <title>Sessions - TTU Smart Attendance System</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">T</div>
+                    <span>TTU</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item" data-page="dashboard">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="students.html" class="nav-item" data-page="students">
+                    <span class="icon">👥</span>
+                    <span>Students</span>
+                </a>
+                <a href="sessions.html" class="nav-item active" data-page="sessions">
+                    <span class="icon">📅</span>
+                    <span>Sessions</span>
+                </a>
+                <a href="attendance.html" class="nav-item" data-page="attendance">
+                    <span class="icon">✓</span>
+                    <span>Mark Attendance</span>
+                </a>
+                <a href="reports.html" class="nav-item" data-page="reports">
+                    <span class="icon">📈</span>
+                    <span>Reports</span>
+                </a>
+                <a href="admins.html" class="nav-item" data-page="admins">
+                    <span class="icon">🔑</span>
+                    <span>Admins</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-secondary btn-full">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1>Lecture Sessions</h1>
+                </div>
+                <div class="topbar-right">
+                    <button id="addSessionBtn" class="btn btn-primary">➕ New Session</button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search sessions...">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="sessions-grid" id="sessionsContainer">
+                            <p class="empty-state">Loading sessions...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Session Modal -->
+    <div id="sessionModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Create New Session</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="sessionForm" class="form">
+                <div class="form-group">
+                    <label for="courseName">Course Name</label>
+                    <input type="text" id="courseName" placeholder="e.g., Software Design & Architecture" required>
+                </div>
+                <div class="form-group">
+                    <label for="lecturerName">Lecturer Name</label>
+                    <input type="text" id="lecturerName" placeholder="e.g., Dr. John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="weekNumber">Week Number</label>
+                    <input type="number" id="weekNumber" min="1" max="16" required>
+                </div>
+                <div class="form-group">
+                    <label for="sessionDate">Date & Time</label>
+                    <input type="datetime-local" id="sessionDate" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Session</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sessions.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            checkAuth();
+            loadSessions();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('addSessionBtn').addEventListener('click', openAddModal);
+            document.getElementById('sessionForm').addEventListener('submit', handleSaveSession);
+            document.querySelector('.close-btn').addEventListener('click', closeModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Create New Session';
+            document.getElementById('sessionForm').reset();
+            document.getElementById('sessionForm').dataset.sessionId = '';
+            document.getElementById('sessionDate').value = new Date().toISOString().slice(0, 16);
+            document.getElementById('sessionModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('sessionModal').style.display = 'none';
+        }
+
+        async function handleSaveSession(e) {
+            e.preventDefault();
+            const sessionId = document.getElementById('sessionForm').dataset.sessionId;
+            const data = {
+                courseName: document.getElementById('courseName').value,
+                lecturerName: document.getElementById('lecturerName').value,
+                week: document.getElementById('weekNumber').value,
+                dateTime: document.getElementById('sessionDate').value,
+                createdAt: new Date().getTime()
+            };
+
+            try {
+                await saveSession(sessionId || null, data);
+                showToast(sessionId ? 'Session updated successfully' : 'Session created successfully', 'success');
+                closeModal();
+                loadSessions();
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.session-card');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        async function handleLogout() {
+            try {
+                await logoutUser();
+                window.location.href = 'login.html';
+            } catch (error) {
+                showToast('Logout failed: ' + error.message, 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service worker registered.'))
+                .catch(err => console.log('Service worker registration failed:', err));
+        }
+
+        window.addEventListener('beforeinstallprompt', event => {
+            event.preventDefault();
+            window.deferredInstallPrompt = event;
+        });
+    </script>
+</body>
+</html>
