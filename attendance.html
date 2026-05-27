@@ -98,6 +98,26 @@
                             </div>
                         </div>
 
+                        <div class="biometric-card">
+                            <div class="biometric-header">
+                                <h3>Biometric Scanner</h3>
+                                <p class="text-secondary">Connect a fingerprint reader and scan student thumbs for instant attendance marking.</p>
+                            </div>
+                            <div class="biometric-status-row">
+                                <span id="biometricStatus" class="badge badge-primary">Disconnected</span>
+                                <span id="lastScanResult" class="text-secondary">No scans yet.</span>
+                            </div>
+                            <div class="biometric-actions">
+                                <button id="connectSensorBtn" class="btn btn-secondary">Connect Device</button>
+                                <button id="disconnectSensorBtn" class="btn btn-danger">Disconnect</button>
+                                <button id="simulateScanBtn" class="btn btn-small">Simulate Scan</button>
+                            </div>
+                            <div class="biometric-manual">
+                                <label for="biometricScanInput">Scan payload / student index</label>
+                                <input id="biometricScanInput" class="form-control" placeholder="e.g. TTC12345 or 7654321" type="text">
+                            </div>
+                        </div>
+
                         <div class="attendance-stats">
                             <div class="stat">
                                 <span class="stat-label">Present</span>
@@ -151,6 +171,9 @@
         let currentSession = null;
         let allStudents = [];
         let attendanceData = {};
+        let biometricPort = null;
+        let biometricReader = null;
+        let isBiometricConnected = false;
 
         window.addEventListener('load', () => {
             checkAuth();
@@ -166,6 +189,24 @@
             document.getElementById('saveBtn').addEventListener('click', saveAttendance);
             document.getElementById('selectAll').addEventListener('change', toggleSelectAll);
             document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+            const connectBtn = document.getElementById('connectSensorBtn');
+            const disconnectBtn = document.getElementById('disconnectSensorBtn');
+            const simulateBtn = document.getElementById('simulateScanBtn');
+            const scanInput = document.getElementById('biometricScanInput');
+
+            if (connectBtn) connectBtn.addEventListener('click', connectBiometricDevice);
+            if (disconnectBtn) disconnectBtn.addEventListener('click', disconnectBiometricDevice);
+            if (simulateBtn) simulateBtn.addEventListener('click', () => {
+                const scanValue = scanInput.value.trim();
+                if (!scanValue) {
+                    showToast('Enter a scan payload to simulate.', 'warning');
+                    return;
+                }
+                handleBiometricScan(scanValue);
+            });
+
+            updateBiometricUi();
         }
 
         async function loadSessions() {
@@ -175,7 +216,7 @@
                     collection(db, 'sessions'),
                     orderBy('createdAt', 'desc')
                 ));
-                
+
                 const select = document.getElementById('sessionSelect');
                 select.innerHTML = '<option value="">Choose a session...</option>';
                 snap.forEach(doc => {
@@ -186,6 +227,7 @@
                 });
             } catch (error) {
                 console.error('Error loading sessions:', error);
+                showToast('Error loading sessions', 'error');
             }
         }
 
@@ -194,6 +236,7 @@
             if (currentSession) {
                 await loadStudentsForSession();
                 document.getElementById('attendanceBody').style.display = 'block';
+                updateLastScan('Ready for biometric scan.');
             } else {
                 document.getElementById('attendanceBody').style.display = 'none';
             }
@@ -202,15 +245,9 @@
         async function loadStudentsForSession() {
             try {
                 const db = getFirestore();
-                
-                // Load all students
                 const studentsSnap = await getDocs(collection(db, 'students'));
-                allStudents = studentsSnap.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+                allStudents = studentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Load existing attendance
                 const attendanceSnap = await getDocs(query(
                     collection(db, 'attendance'),
                     where('sessionId', '==', currentSession)
@@ -230,16 +267,16 @@
 
         function renderAttendanceTable() {
             const tbody = document.getElementById('attendanceTableBody');
-            tbody.innerHTML = allStudents.map((student, index) => {
+            tbody.innerHTML = allStudents.map(student => {
                 const isPresent = attendanceData[student.id] === 'present';
                 return `
-                    <tr>
+                    <tr class="${isPresent ? 'present-row' : 'absent-row'}">
                         <td>
                             <input type="checkbox" class="student-checkbox" data-student-id="${student.id}" ${isPresent ? 'checked' : ''}>
                         </td>
                         <td>${student.indexNumber}</td>
                         <td>${student.name}</td>
-                        <td>${student.department}</td>
+                        <td>${student.department || 'N/A'}</td>
                         <td>
                             <span class="badge ${isPresent ? 'badge-success' : 'badge-danger'}">
                                 ${isPresent ? 'Present' : 'Absent'}
@@ -249,12 +286,26 @@
                 `;
             }).join('');
 
-            // Add event listeners to checkboxes
             document.querySelectorAll('.student-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', updateStats);
+                checkbox.addEventListener('change', () => {
+                    updateBadge(checkbox);
+                    updateStats();
+                });
             });
 
             updateStats();
+        }
+
+        function updateBadge(checkbox) {
+            const row = checkbox.closest('tr');
+            if (!row) return;
+            const badge = row.querySelector('.badge');
+            if (badge) {
+                badge.textContent = checkbox.checked ? 'Present' : 'Absent';
+                badge.className = `badge ${checkbox.checked ? 'badge-success' : 'badge-danger'}`;
+            }
+            row.classList.toggle('present-row', checkbox.checked);
+            row.classList.toggle('absent-row', !checkbox.checked);
         }
 
         function updateStats() {
@@ -271,6 +322,7 @@
         function markAllPresent() {
             document.querySelectorAll('.student-checkbox').forEach(checkbox => {
                 checkbox.checked = true;
+                updateBadge(checkbox);
             });
             updateStats();
         }
@@ -278,6 +330,7 @@
         function clearAll() {
             document.querySelectorAll('.student-checkbox').forEach(checkbox => {
                 checkbox.checked = false;
+                updateBadge(checkbox);
             });
             updateStats();
         }
@@ -285,6 +338,7 @@
         function toggleSelectAll(e) {
             document.querySelectorAll('.student-checkbox').forEach(checkbox => {
                 checkbox.checked = e.target.checked;
+                updateBadge(checkbox);
             });
             updateStats();
         }
@@ -306,38 +360,154 @@
 
             try {
                 const db = getFirestore();
+                const attendanceSnapshot = await getDocs(query(
+                    collection(db, 'attendance'),
+                    where('sessionId', '==', currentSession)
+                ));
+
+                const attendanceMap = new Map();
+                attendanceSnapshot.forEach(doc => attendanceMap.set(doc.data().studentId, doc));
+
+                const batch = window.db.batch();
                 const checkboxes = document.querySelectorAll('.student-checkbox');
-                
+
                 for (const checkbox of checkboxes) {
                     const studentId = checkbox.dataset.studentId;
                     const student = allStudents.find(s => s.id === studentId);
                     const status = checkbox.checked ? 'present' : 'absent';
-                    
-                    const attendanceRef = query(
-                        collection(db, 'attendance'),
-                        where('studentId', '==', studentId),
-                        where('sessionId', '==', currentSession)
-                    );
-                    
-                    const snap = await getDocs(attendanceRef);
-                    if (snap.empty) {
-                        await addDoc(collection(db, 'attendance'), {
+
+                    if (!student) continue;
+
+                    if (attendanceMap.has(studentId)) {
+                        const attendanceDoc = attendanceMap.get(studentId);
+                        batch.update(attendanceDoc.ref, { status, timestamp: Date.now() });
+                    } else {
+                        const docRef = window.db.collection('attendance').doc();
+                        batch.set(docRef, {
                             studentId,
+                            sessionId: currentSession,
                             name: student.name,
                             indexNumber: student.indexNumber,
-                            sessionId: currentSession,
                             status,
-                            timestamp: new Date().getTime()
+                            timestamp: Date.now()
                         });
-                    } else {
-                        await updateDoc(snap.docs[0].ref, { status });
                     }
                 }
 
+                await batch.commit();
                 showToast('Attendance saved successfully!', 'success');
             } catch (error) {
                 console.error('Error saving attendance:', error);
                 showToast('Error saving attendance: ' + error.message, 'error');
+            }
+        }
+
+        async function connectBiometricDevice() {
+            if (!('serial' in navigator)) {
+                showToast('Web Serial is not supported in this browser. Use a compatible Chromium browser or scan manually.', 'warning');
+                return;
+            }
+
+            try {
+                biometricPort = await navigator.serial.requestPort();
+                await biometricPort.open({ baudRate: 9600, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
+                isBiometricConnected = true;
+                updateBiometricUi();
+                listenBiometricPort();
+                showToast('Biometric scanner connected. Ready to scan.', 'success');
+            } catch (error) {
+                console.error('Biometric connection failed:', error);
+                showToast('Unable to connect scanner: ' + error.message, 'error');
+            }
+        }
+
+        async function disconnectBiometricDevice() {
+            try {
+                if (biometricReader) {
+                    await biometricReader.cancel();
+                    biometricReader.releaseLock();
+                    biometricReader = null;
+                }
+                if (biometricPort) {
+                    await biometricPort.close();
+                    biometricPort = null;
+                }
+            } catch (error) {
+                console.error('Error disconnecting scanner:', error);
+            }
+            isBiometricConnected = false;
+            updateBiometricUi();
+            showToast('Biometric scanner disconnected.', 'info');
+        }
+
+        async function listenBiometricPort() {
+            if (!biometricPort || !biometricPort.readable) {
+                return;
+            }
+
+            const decoder = new TextDecoderStream();
+            biometricPort.readable.pipeTo(decoder.writable);
+            biometricReader = decoder.readable.getReader();
+
+            try {
+                while (true) {
+                    const { value, done } = await biometricReader.read();
+                    if (done) break;
+                    if (value) {
+                        const lines = value.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+                        lines.forEach(line => handleBiometricScan(line));
+                    }
+                }
+            } catch (error) {
+                console.error('Biometric read error:', error);
+            }
+        }
+
+        function handleBiometricScan(payload) {
+            if (!currentSession) {
+                showToast('Select a session before scanning.', 'warning');
+                return;
+            }
+
+            const scanValue = payload.trim();
+            if (!scanValue) {
+                return;
+            }
+
+            const student = allStudents.find(s =>
+                s.indexNumber === scanValue ||
+                (s.biometricId && s.biometricId.toString() === scanValue) ||
+                s.name.toLowerCase() === scanValue.toLowerCase() ||
+                s.id === scanValue
+            );
+
+            if (!student) {
+                showToast(`No student matched '${scanValue}'. Add biometricId or use index number.`, 'warning');
+                updateLastScan(`No match for ${scanValue}`);
+                return;
+            }
+
+            const checkbox = document.querySelector(`.student-checkbox[data-student-id="${student.id}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+                updateBadge(checkbox);
+                updateStats();
+                updateLastScan(`${student.name} marked present`);
+                showToast(`${student.name} marked present via biometric scan.`, 'success');
+            }
+        }
+
+        function updateLastScan(message) {
+            const lastScanResult = document.getElementById('lastScanResult');
+            if (lastScanResult) {
+                lastScanResult.textContent = message;
+            }
+        }
+
+        function updateBiometricUi() {
+            const status = document.getElementById('biometricStatus');
+            if (status) {
+                status.textContent = isBiometricConnected ? 'Connected - waiting for scan' : 'Disconnected';
             }
         }
 

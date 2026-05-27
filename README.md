@@ -30,6 +30,7 @@ A modern, production-ready Progressive Web App (PWA) for managing student attend
 - Fast, intuitive attendance marking with checkboxes
 - Real-time counters (present/absent/total)
 - Quick actions: Mark all present, Clear all
+- Biometric scanner support for instant thumb scan attendance
 - Search students during attendance marking
 - Auto-save functionality
 - Offline support
@@ -386,7 +387,7 @@ For issues, feature requests, or questions:
 
 ## 🎯 Future Enhancements
 
-- [ ] Biometric attendance (fingerprint/face recognition)
+- [x] Biometric attendance integration
 - [ ] SMS notifications for admins
 - [ ] QR code attendance marking
 - [ ] Integration with university management system
