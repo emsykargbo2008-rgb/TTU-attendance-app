@@ -13,6 +13,8 @@ const ASSETS_TO_CACHE = [
     './reports.html',
     './admins.html',
     './css/style.css',
+    './assets/icons/icon-192.png',
+    './assets/icons/icon-512.png',
     './js/firebase.js',
     './js/auth.js',
     './js/students.js',
@@ -79,7 +81,12 @@ self.addEventListener('fetch', event => {
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
                 return response;
-            }).catch(() => caches.match('./index.html'));
+            }).catch(() => {
+                if (request.destination === 'document' || request.mode === 'navigate') {
+                    return caches.match('./index.html');
+                }
+                return new Response('Offline', { status: 503, statusText: 'Offline' });
+            });
         })
     );
 });

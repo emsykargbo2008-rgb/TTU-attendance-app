@@ -604,6 +604,11 @@ html, body {
     background: var(--border-color);
 }
 
+.install-message {
+    max-width: 28rem;
+    line-height: 1.5;
+}
+
 /* =====================================================
    STATS
    ===================================================== */

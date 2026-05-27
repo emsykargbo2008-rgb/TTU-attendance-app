@@ -1,5 +1,7 @@
 # TTU Smart Attendance System
 
+Live demo: https://emsykargbo2008-rgb.github.io/TTU-attendance-app/
+
 A modern, production-ready Progressive Web App (PWA) for managing student attendance at Takoradi Technical University. Built with vanilla HTML5, CSS3, JavaScript, and Firebase.
 
 ## 🚀 Features
@@ -67,7 +69,7 @@ A modern, production-ready Progressive Web App (PWA) for managing student attend
 ## 🏗️ Project Structure
 
 ```
-ttu-smart-attendance/
+TTU-attendance-app/
 │
 ├── index.html                 # Landing page
 ├── login.html                 # Admin login
@@ -90,9 +92,8 @@ ttu-smart-attendance/
 │   ├── reports.js            # Report generation
 │   └── admins.js             # Admin management
 │
-├── pwa/
-│   ├── manifest.json         # PWA manifest
-│   └── service-worker.js     # Service worker for offline support
+├── manifest.json             # PWA manifest
+├── service-worker.js         # Service worker for offline support
 │
 ├── assets/
 │   └── (icons and images)
@@ -118,8 +119,8 @@ Once you deploy the site to a public host, users can search for `TTU Attendance`
 
 ### Step 1: Download or Clone
 ```bash
-git clone https://github.com/yourusername/ttu-smart-attendance.git
-cd ttu-smart-attendance
+git clone https://github.com/emsykargbo2008-rgb/TTU-attendance-app.git
+cd TTU-attendance-app
 ```
 
 ### Step 2: Configure Firebase

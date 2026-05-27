@@ -9,8 +9,8 @@
     <meta property="og:title" content="TTU Attendance | Smart Attendance System">
     <meta property="og:description" content="TTU Attendance makes student attendance management easy for Takoradi Technical University. Install on mobile or use it directly in your browser.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://ttu-attendance.example.com/">
-    <meta property="og:image" content="https://ttu-attendance.example.com/assets/icons/icon-512.png">
+    <meta property="og:url" content="https://emsykargbo2008-rgb.github.io/TTU-attendance-app/">
+    <meta property="og:image" content="https://emsykargbo2008-rgb.github.io/TTU-attendance-app/assets/icons/icon-512.png">
     <title>TTU Attendance | Smart Attendance System</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -45,6 +45,7 @@
                 <p>Modern, efficient, and reliable attendance management for Takoradi Technical University</p>
                 <a href="login.html" class="btn btn-primary btn-lg">Get Started</a>
                 <button id="installButton" class="btn btn-secondary btn-lg" style="display:none; margin-left: 1rem;">Install App</button>
+                <p id="installMessage" class="install-message text-secondary mt-1"></p>
             </div>
             <div class="hero-graphic">
                 <div class="graphic-box">
@@ -107,6 +108,7 @@
             <h2>About This System</h2>
             <div class="about-content">
                 <p>The TTU Smart Attendance System is a modern solution designed for Software Engineering Level 100 at Takoradi Technical University. Built with cutting-edge web technology, it provides administrators with an efficient way to manage attendance records for large student groups.</p>
+                <p class="text-secondary">Created by Emmanuel Abubakarr Kargbo, this app combines clean mobile-first design and Firebase-powered reliability to make attendance tracking smooth for both admins and students.</p>
                 <div class="about-features">
                     <div class="about-item">
                         <strong>300+ Students</strong>
@@ -138,21 +140,44 @@
     </div>
 
     <script>
+        const installButton = document.getElementById('installButton');
+        const installMessage = document.getElementById('installMessage');
+        let deferredInstallPrompt;
+
+        const isIosSafari = () => {
+            const ua = navigator.userAgent.toLowerCase();
+            return /iphone|ipad|ipod/.test(ua) && /safari/.test(ua) && !/crios|fxios|opera mini|edgios/.test(ua);
+        };
+
+        const isStandalone = () => {
+            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        };
+
+        const showInstallAction = text => {
+            if (installButton) {
+                installButton.style.display = 'inline-flex';
+            }
+            if (installMessage) {
+                installMessage.textContent = text;
+            }
+        };
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
                 .then(() => console.log('Service worker registered.'))
                 .catch(err => console.log('Service worker registration failed:', err));
         }
 
-        let deferredInstallPrompt;
-        const installButton = document.getElementById('installButton');
-
         window.addEventListener('beforeinstallprompt', event => {
             event.preventDefault();
             deferredInstallPrompt = event;
-            if (installButton) {
-                installButton.style.display = 'inline-flex';
-            }
+            showInstallAction('Install TTU Attendance to your home screen for fast access, offline support, and one-tap launch.');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            if (installButton) installButton.style.display = 'none';
+            if (installMessage) installMessage.textContent = 'App installed. Open it from your home screen anytime.';
+            console.log('TTU Attendance installed.');
         });
 
         if (installButton) {
@@ -166,7 +191,7 @@
                     console.log('TTU Attendance install dismissed');
                 }
                 deferredInstallPrompt = null;
-                installButton.style.display = 'none';
+                if (installButton) installButton.style.display = 'none';
             });
         }
 
@@ -174,6 +199,13 @@
             const user = localStorage.getItem('user');
             if (user) {
                 window.location.href = 'dashboard.html';
+                return;
+            }
+            if (isStandalone()) {
+                if (installButton) installButton.style.display = 'none';
+                if (installMessage) installMessage.textContent = 'TTU Attendance is running as an installed app.';
+            } else if (isIosSafari()) {
+                showInstallAction('To install on iOS, tap Share then Add to Home Screen.');
             }
         });
     </script>
